@@ -12,36 +12,48 @@ export function generateBody(
 ): CommitBody {
   const lines: string[] = [];
 
-  // List changed files (max 10)
   const filesByStatus = groupByStatus(stagedFiles);
 
   if (filesByStatus.added.length > 0) {
-    lines.push(...filesByStatus.added.slice(0, 5).map((f) => `- Add ${f}`));
-    if (filesByStatus.added.length > 5) {
-      lines.push(`- ...and ${filesByStatus.added.length - 5} more added files`);
-    }
+    lines.push(...formatFileGroup(filesByStatus.added, "Add"));
   }
 
   if (filesByStatus.modified.length > 0) {
-    lines.push(...filesByStatus.modified.slice(0, 5).map((f) => `- Update ${f}`));
-    if (filesByStatus.modified.length > 5) {
-      lines.push(`- ...and ${filesByStatus.modified.length - 5} more modified files`);
-    }
+    lines.push(...formatFileGroup(filesByStatus.modified, "Update"));
   }
 
   if (filesByStatus.deleted.length > 0) {
-    lines.push(...filesByStatus.deleted.slice(0, 5).map((f) => `- Remove ${f}`));
-    if (filesByStatus.deleted.length > 5) {
-      lines.push(`- ...and ${filesByStatus.deleted.length - 5} more deleted files`);
-    }
+    lines.push(...formatFileGroup(filesByStatus.deleted, "Remove"));
   }
 
   // Detect breaking changes
   const breakingChange = detectBreakingChanges(diff);
 
-  const description = lines.join("\n");
+  return { description: lines.join("\n"), breakingChange };
+}
 
-  return { description, breakingChange };
+function formatFileGroup(files: string[], action: string): string[] {
+  // Group by immediate parent directory
+  const byDir = new Map<string, string[]>();
+  for (const f of files) {
+    const slash = f.lastIndexOf("/");
+    const dir = slash === -1 ? "." : f.slice(0, slash);
+    const name = slash === -1 ? f : f.slice(slash + 1);
+    if (!byDir.has(dir)) byDir.set(dir, []);
+    byDir.get(dir)!.push(name);
+  }
+
+  const lines: string[] = [];
+  for (const [dir, names] of byDir) {
+    if (names.length === 1) {
+      lines.push(`- ${action} ${dir === "." ? names[0] : `${dir}/${names[0]}`}`);
+    } else if (names.length <= 3) {
+      lines.push(`- ${action} ${dir}/ (${names.join(", ")})`);
+    } else {
+      lines.push(`- ${action} ${names.length} files in ${dir}/`);
+    }
+  }
+  return lines;
 }
 
 function groupByStatus(files: StagedFile[]): Record<string, string[]> {

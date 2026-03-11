@@ -29,34 +29,29 @@ const TYPE_LABELS: Record<string, string> = {
   revert: "REVERT",
 };
 
-export function displaySuggestion(suggestion: CommitSuggestion, source: "heuristic" | "ai" = "heuristic"): void {
+export function displaySuggestion(suggestion: CommitSuggestion, source: "heuristic" | "ai" = "heuristic", showHeader = true): void {
   const colorFn = TYPE_COLORS[suggestion.type] || chalk.white;
   const label = TYPE_LABELS[suggestion.type] || suggestion.type.toUpperCase();
 
   console.log();
   console.log(chalk.dim("─".repeat(60)));
-
-  // Source badge
-  const sourceBadge = source === "ai"
-    ? chalk.bgMagenta.white(" AI ")
-    : chalk.bgGray.white(" LOCAL ");
-  console.log(`  ${sourceBadge}  ${chalk.dim("Commit Suggestion")}`);
-
   console.log();
 
-  // Type badge + header
-  const typeBadge = colorFn(`[${label}]`);
-  const header = suggestion.scope
-    ? `${suggestion.type}(${chalk.cyan(suggestion.scope)}): ${suggestion.subject}`
-    : `${suggestion.type}: ${suggestion.subject}`;
+  if (showHeader) {
+    // Type badge + header
+    const typeBadge = colorFn(`[${label}]`);
+    const header = suggestion.scope
+      ? `${suggestion.type}(${chalk.cyan(suggestion.scope)}): ${suggestion.subject}`
+      : `${suggestion.type}: ${suggestion.subject}`;
 
-  console.log(`  ${typeBadge}  ${chalk.bold(header)}`);
+    console.log(`  ${typeBadge}  ${chalk.bold(header)}`);
+  }
 
   // Body
   if (suggestion.body) {
-    console.log();
+    if (showHeader) console.log();
     for (const line of suggestion.body.split("\n")) {
-      console.log(`  ${chalk.dim(line)}`);
+      console.log(`  ${chalk.bold(line)}`);
     }
   }
 

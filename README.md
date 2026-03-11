@@ -1,6 +1,6 @@
 # lazycommit
 
-Auto-generate semantic commit messages from your staged changes. Works offline with smart heuristics — no AI required. Optional AI upgrade with your own API key.
+Auto-generate commit messages from your staged changes. Works offline with smart heuristics — no AI required. Optional AI upgrade with your own API key.
 
 ## The Problem
 
@@ -13,7 +13,7 @@ git add .
 lazycommit
 ```
 
-Bad commits:
+Instead of:
 ```
 fixed stuff
 update auth
@@ -21,12 +21,11 @@ changes
 wip
 ```
 
-Smart commits:
+You get:
 ```
-feat(auth): add JWT token validation middleware
-fix(api): handle timeout errors in fetch handler
-refactor(utils): simplify date formatting logic
-test: add coverage for authentication flow
+- Add src/features/auth/ (login.ts, middleware.ts)
+- Update src/api/handler.ts
+- Remove src/legacy/auth.ts
 ```
 
 ## Install
@@ -49,17 +48,10 @@ That's it. You'll see a suggestion and can approve, edit, or reject it.
 ### Example Output
 
 ```
-  lazycommit — smart commit messages
-
 ────────────────────────────────────────────────────
-  LOCAL   Commit Suggestion
 
-  [FEATURE]  feat(auth): add login user handler
-
-  - Add src/features/auth/login.ts (new)
-  - Update src/middleware/auth.ts
-
-  +142 -8 lines changed
+  - Add src/features/auth/ (login.ts, middleware.ts)
+  - Update src/api/handler.ts
 
   Confidence: ████████░░ 80%
 ────────────────────────────────────────────────────
@@ -76,7 +68,6 @@ lazycommit --dry-run    # Show suggestion without committing
 lazycommit --auto       # Auto-approve (for scripts/CI)
 lazycommit --ai         # Use AI for this commit
 lazycommit --no-body    # Skip commit body
-lazycommit --no-scope   # Skip scope detection
 
 lazycommit init         # Create .lazycommit.json config
 lazycommit config       # Configure AI provider
@@ -96,25 +87,13 @@ When a suggestion is shown, you can:
 
 ### Heuristic Engine (Default — Offline, Free)
 
-Lazycommit analyzes your `git diff --staged` using pattern matching:
+Lazycommit analyzes your `git diff --staged` and generates a commit body listing what changed, grouped by directory:
 
-1. **Type Detection** — Determines `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`, `style`, or `build` based on:
-   - File types (`.test.ts` → `test`, `.md` → `docs`)
-   - File paths (`.github/workflows/` → `ci`)
-   - Diff keywords (`throw Error` → `fix`, `optimize` → `perf`)
-   - Change patterns (all new files → `feat`, all deletions → `chore`)
+- **1 file in a dir** — `- Update src/api/handler.ts`
+- **2–3 files in a dir** — `- Update src/api/ (handler.ts, router.ts)`
+- **4+ files in a dir** — `- Update 6 files in src/api/`
 
-2. **Scope Detection** — Extracts scope from file paths:
-   - `src/api/*.ts` → `api`
-   - `src/components/*.tsx` → `ui`
-   - Configurable via `.lazycommit.json`
-
-3. **Subject Generation** — Builds a meaningful subject:
-   - Extracts function/class names from changed code
-   - Uses file names and change patterns
-   - Keeps under 72 characters
-
-4. **Body Generation** — Lists changed files and detects breaking changes
+It also detects breaking changes (removed exports, changed function signatures) and flags them separately.
 
 ### AI Mode (Optional)
 
@@ -149,10 +128,10 @@ lazycommit init
 
 ```json
 {
-  "conventionalCommits": true,
+  "conventionalCommits": false,
   "maxSubjectLength": 72,
   "includeBody": true,
-  "includeScope": true,
+  "includeScope": false,
   "allowedTypes": ["feat", "fix", "refactor", "test", "docs", "chore"],
   "scopeMappings": {
     "^src/api/": "api",
@@ -172,16 +151,17 @@ lazycommit init
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `conventionalCommits` | boolean | `true` | Use conventional commits format |
-| `maxSubjectLength` | number | `72` | Max characters for subject line |
+| `conventionalCommits` | boolean | `false` | Use `type: subject` conventional commits format |
+| `maxSubjectLength` | number | `72` | Max characters for subject line (conventional commits only) |
 | `includeBody` | boolean | `true` | Include file list in commit body |
-| `includeScope` | boolean | `true` | Auto-detect and include scope |
+| `includeScope` | boolean | `false` | Auto-detect and include scope (conventional commits only) |
 | `allowedTypes` | string[] | all types | Restrict allowed commit types |
 | `scopeMappings` | object | built-in | Custom file path → scope mappings |
 | `ticketPattern` | string | none | Regex for ticket numbers (e.g. JIRA) |
 | `ai.enabled` | boolean | `false` | Enable AI by default |
 | `ai.provider` | string | null | `"anthropic"` or `"openai"` |
 | `ai.apiKey` | string | null | Your API key (or use env vars) |
+| `ai.model` | string | provider default | Override the AI model |
 
 ### Config Priority
 
@@ -189,35 +169,23 @@ lazycommit init
 2. Home directory `~/.lazycommit.json`
 3. Built-in defaults (lowest)
 
-## Supported Commit Types
+### Conventional Commits (opt-in)
 
-| Type | When | Example |
-|------|------|---------|
-| `feat` | New feature files added | `feat(auth): add login handler` |
-| `fix` | Bug fix, error handling | `fix(api): handle timeout errors` |
-| `refactor` | Code restructuring | `refactor(utils): simplify date logic` |
-| `test` | Test files only | `test: add auth flow coverage` |
-| `docs` | Documentation changes | `docs: update API reference` |
-| `chore` | Dependencies, config | `chore: upgrade react to v19` |
-| `perf` | Performance improvements | `perf(db): add query caching` |
-| `ci` | CI/CD configuration | `ci: add GitHub Actions workflow` |
-| `style` | Formatting, whitespace | `style: fix indentation` |
-| `build` | Build system changes | `build: update webpack config` |
-
-## Team Usage
-
-Teams can commit `.lazycommit.json` to their repo to enforce consistent commit messages:
+If you prefer the `type(scope): subject` format, enable it in your config:
 
 ```json
 {
   "conventionalCommits": true,
-  "allowedTypes": ["feat", "fix", "refactor", "test", "docs"],
-  "scopeMappings": {
-    "^src/api/": "api",
-    "^src/components/": "ui",
-    "^src/database/": "db"
-  }
+  "includeScope": true
 }
+```
+
+Output becomes:
+```
+feat(auth): add login handler
+
+- Add src/features/auth/ (login.ts, middleware.ts)
+- Update src/api/handler.ts
 ```
 
 ## Development

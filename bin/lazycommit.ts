@@ -93,7 +93,8 @@ program
     }
 
     // Display suggestion
-    displaySuggestion(suggestion, source);
+    const showHeader = config.conventionalCommits;
+    displaySuggestion(suggestion, source, showHeader);
 
     // Dry run mode
     if (options.dryRun) {
@@ -152,7 +153,7 @@ program
         case "regenerate": {
           suggestion = analyzeAndSuggest(diff, stagedFiles, config);
           commitMessage = suggestion.fullMessage;
-          displaySuggestion(suggestion, "heuristic");
+          displaySuggestion(suggestion, "heuristic", showHeader);
           break;
         }
 
@@ -168,7 +169,7 @@ program
               });
               commitMessage = aiMessage;
               suggestion = { ...suggestion, fullMessage: aiMessage };
-              displaySuggestion(suggestion, "ai");
+              displaySuggestion(suggestion, "ai", showHeader);
             } catch (err) {
               displayError(`AI failed: ${err instanceof Error ? err.message : String(err)}`);
             }

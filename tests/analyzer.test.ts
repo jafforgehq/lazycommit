@@ -201,8 +201,9 @@ describe("generateBody", () => {
       { path: "src/utils.ts" },
     ]);
     const body = generateBody(diff, files);
-    expect(body.description).toContain("src/api.ts");
-    expect(body.description).toContain("src/utils.ts");
+    expect(body.description).toContain("src/");
+    expect(body.description).toContain("api.ts");
+    expect(body.description).toContain("utils.ts");
   });
 
   it("should detect breaking changes from removed exports", () => {
