@@ -1,0 +1,30 @@
+diff --git a/src/features/auth/login.ts b/src/features/auth/login.ts
+new file mode 100644
+index 0000000..abc1234
+--- /dev/null
++++ b/src/features/auth/login.ts
+@@ -0,0 +1,25 @@
++import { hashPassword, verifyToken } from '../utils/crypto';
++
++export async function loginUser(email: string, password: string) {
++  const user = await findUserByEmail(email);
++  if (!user) {
++    throw new Error('User not found');
++  }
++
++  const isValid = await hashPassword(password) === user.passwordHash;
++  if (!isValid) {
++    throw new Error('Invalid credentials');
++  }
++
++  const token = generateToken(user.id);
++  return { user, token };
++}
++
++export async function logoutUser(token: string) {
++  await invalidateToken(token);
++}
++
++function generateToken(userId: string): string {
++  return jwt.sign({ userId }, process.env.JWT_SECRET!);
++}

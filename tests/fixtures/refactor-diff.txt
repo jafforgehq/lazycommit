@@ -1,0 +1,26 @@
+diff --git a/src/utils/helpers.ts b/src/utils/helpers.ts
+index abc1234..def5678 100644
+--- a/src/utils/helpers.ts
++++ b/src/utils/helpers.ts
+@@ -1,15 +1,10 @@
+-export function formatDate(date: Date): string {
+-  const year = date.getFullYear();
+-  const month = String(date.getMonth() + 1).padStart(2, '0');
+-  const day = String(date.getDate()).padStart(2, '0');
+-  return `${year}-${month}-${day}`;
+-}
+-
+-export function formatDateTime(date: Date): string {
+-  const dateStr = formatDate(date);
+-  const hours = String(date.getHours()).padStart(2, '0');
+-  const minutes = String(date.getMinutes()).padStart(2, '0');
+-  return `${dateStr} ${hours}:${minutes}`;
++export function formatDate(date: Date, includeTime = false): string {
++  const options: Intl.DateTimeFormatOptions = {
++    year: 'numeric',
++    month: '2-digit',
++    day: '2-digit',
++    ...(includeTime && { hour: '2-digit', minute: '2-digit' }),
++  };
++  return new Intl.DateTimeFormat('en-US', options).format(date);
+ }
