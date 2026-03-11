@@ -5,3 +5,5 @@ export { getStagedFiles, hasStagedChanges, isGitRepo, getCurrentBranch } from ".
 export type { StagedFile } from "./files.js";
 
 export { executeCommit } from "./commit.js";
+
+export { getGitRoot, isHookInstalled, installHook, uninstallHook } from "./hooks.js";

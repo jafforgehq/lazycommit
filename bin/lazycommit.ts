@@ -1,3 +1,4 @@
+import { writeFileSync } from "node:fs";
 import { Command } from "commander";
 import chalk from "chalk";
 import {
@@ -16,6 +17,9 @@ import {
   displayWelcome,
   promptUser,
   promptEdit,
+  getGitRoot,
+  installHook,
+  uninstallHook,
 } from "../src/index.js";
 
 const program = new Command();
@@ -34,7 +38,20 @@ program
   .option("--ai", "Force AI mode for this commit")
   .option("--no-body", "Omit commit body")
   .option("--no-scope", "Omit scope from commit message")
+  .option("--hook <file>", "Hook mode: write suggestion to file and exit (used by git hook)")
   .action(async (options) => {
+    // Hook mode: non-interactive, called by prepare-commit-msg hook
+    if (options.hook) {
+      if (!isGitRepo() || !hasStagedChanges()) process.exit(0);
+      const config = loadConfig();
+      const diff = getStagedDiff();
+      const stagedFiles = getStagedFiles();
+      if (diff.files.length === 0) process.exit(0);
+      const suggestion = analyzeAndSuggest(diff, stagedFiles, config);
+      writeFileSync(options.hook, suggestion.fullMessage + "\n", "utf-8");
+      process.exit(0);
+    }
+
     displayWelcome();
 
     // Pre-flight checks
@@ -236,6 +253,39 @@ program
       console.log(chalk.dim("    lazycommit --ai"));
       console.log();
     }
+  });
+
+// Install command
+program
+  .command("install")
+  .description("Install lazycommit as a git prepare-commit-msg hook")
+  .action(() => {
+    if (!isGitRepo()) {
+      displayError("Not a git repository.");
+      process.exit(1);
+    }
+    const gitRoot = getGitRoot();
+    const result = installHook(gitRoot);
+    console.log(`  ${chalk.green("✔")} ${result.message}`);
+    if (!result.success) process.exit(1);
+  });
+
+// Uninstall command
+program
+  .command("uninstall")
+  .description("Remove the lazycommit git hook")
+  .action(() => {
+    if (!isGitRepo()) {
+      displayError("Not a git repository.");
+      process.exit(1);
+    }
+    const gitRoot = getGitRoot();
+    const result = uninstallHook(gitRoot);
+    if (!result.success) {
+      displayError(result.message);
+      process.exit(1);
+    }
+    console.log(`  ${chalk.green("✔")} ${result.message}`);
   });
 
 program.parse();

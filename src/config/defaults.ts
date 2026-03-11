@@ -21,7 +21,7 @@ export const DEFAULT_CONFIG: LazycommitConfig = {
   conventionalCommits: true,
   maxSubjectLength: 72,
   includeBody: true,
-  includeScope: true,
+  includeScope: false,
   ai: {
     enabled: false,
     provider: null,
