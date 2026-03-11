@@ -18,7 +18,7 @@ export const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 
 export const DEFAULT_CONFIG: LazycommitConfig = {
-  conventionalCommits: true,
+  conventionalCommits: false,
   maxSubjectLength: 72,
   includeBody: true,
   includeScope: false,

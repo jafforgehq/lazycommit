@@ -44,10 +44,15 @@ export function analyzeAndSuggest(
     ? `${typeResult.type}(${scope}): ${subject}`
     : `${typeResult.type}: ${subject}`;
 
-  let fullMessage = header;
+  let fullMessage: string;
 
-  if (bodyResult.description) {
-    fullMessage += `\n\n${bodyResult.description}`;
+  if (config?.conventionalCommits === false && bodyResult.description) {
+    fullMessage = bodyResult.description;
+  } else {
+    fullMessage = header;
+    if (bodyResult.description) {
+      fullMessage += `\n\n${bodyResult.description}`;
+    }
   }
 
   if (bodyResult.breakingChange) {

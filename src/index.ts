@@ -1,7 +1,7 @@
 export { analyzeAndSuggest } from "./analyzer/index.js";
 export type { CommitSuggestion } from "./analyzer/index.js";
 
-export { getStagedDiff, getStagedFiles, hasStagedChanges, isGitRepo, executeCommit, getGitRoot, isHookInstalled, installHook, uninstallHook } from "./git/index.js";
+export { getStagedDiff, getStagedFiles, hasStagedChanges, isGitRepo, executeCommit } from "./git/index.js";
 
 export { loadConfig, initConfig } from "./config/index.js";
 export type { LazycommitConfig } from "./config/index.js";
