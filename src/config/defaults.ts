@@ -10,10 +10,12 @@ export interface LazycommitConfig {
     enabled: boolean;
     provider: "anthropic" | "openai" | null;
     apiKey: string | null;
+    model?: string;
   };
 }
 
 export const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 
 export const DEFAULT_CONFIG: LazycommitConfig = {
   conventionalCommits: true,
@@ -43,5 +45,6 @@ export const EXAMPLE_CONFIG: LazycommitConfig = {
     enabled: false,
     provider: null,
     apiKey: null,
+    // model: "claude-sonnet-4-20250514",  // override the default model
   },
 };

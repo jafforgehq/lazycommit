@@ -5,9 +5,11 @@ import { DEFAULT_ANTHROPIC_MODEL } from "../config/defaults.js";
 export class AnthropicProvider implements AIProvider {
   name = "anthropic";
   private apiKey: string;
+  private model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model: string = DEFAULT_ANTHROPIC_MODEL) {
     this.apiKey = apiKey;
+    this.model = model;
   }
 
   async generateCommitMessage(diff: string, context: AIContext): Promise<string> {
@@ -24,7 +26,7 @@ export class AnthropicProvider implements AIProvider {
     const client = new Anthropic({ apiKey: this.apiKey });
 
     const message = await client.messages.create({
-      model: DEFAULT_ANTHROPIC_MODEL,
+      model: this.model,
       max_tokens: 500,
       system: SYSTEM_PROMPT,
       messages: [

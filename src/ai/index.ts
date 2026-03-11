@@ -14,9 +14,9 @@ export function createAIProvider(config: LazycommitConfig): AIProvider | null {
 
   switch (aiConfig.provider) {
     case "anthropic":
-      return new AnthropicProvider(apiKey);
+      return new AnthropicProvider(apiKey, aiConfig.model);
     case "openai":
-      return new OpenAIProvider(apiKey);
+      return new OpenAIProvider(apiKey, aiConfig.model);
     default:
       return null;
   }

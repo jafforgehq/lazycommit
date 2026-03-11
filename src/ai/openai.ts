@@ -1,12 +1,15 @@
 import type { AIProvider, AIContext } from "./provider.js";
 import { SYSTEM_PROMPT, buildUserPrompt } from "./provider.js";
+import { DEFAULT_OPENAI_MODEL } from "../config/defaults.js";
 
 export class OpenAIProvider implements AIProvider {
   name = "openai";
   private apiKey: string;
+  private model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model: string = DEFAULT_OPENAI_MODEL) {
     this.apiKey = apiKey;
+    this.model = model;
   }
 
   async generateCommitMessage(diff: string, context: AIContext): Promise<string> {
@@ -23,7 +26,7 @@ export class OpenAIProvider implements AIProvider {
     const client = new OpenAI({ apiKey: this.apiKey });
 
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: this.model,
       max_tokens: 500,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
